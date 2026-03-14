@@ -13,9 +13,9 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/posts")
+@CrossOrigin(origins = "*")
 public class PostController {
     @Autowired
     private PostRepository postRepository;
@@ -26,37 +26,8 @@ public class PostController {
     }
 
     @PostMapping
-    public Post criar(@RequestParam("titulo") String titulo,
-                      @RequestParam("conteudo") String conteudo,
-                      @RequestParam("tipo") String tipo,
-                      @RequestParam("imagem") MultipartFile arquivo) {
-
-        String CAMINHO_IMAGENS = "uploads/";
-        
-        Post post = new Post();
-        post.setTitulo(titulo);
-        post.setConteudo(conteudo);
-        post.setTipo(tipo);
-        post.setDataPublicacao(LocalDateTime.now());
-
-        try {
-            if (!arquivo.isEmpty()) {
-                Path diretorio = Paths.get(CAMINHO_IMAGENS);
-                if (!Files.exists(diretorio)) {
-                    Files.createDirectories(diretorio);
-                }
-
-                String nomeImagem = System.currentTimeMillis() + "_" + arquivo.getOriginalFilename();
-                Path caminhoCompleto = diretorio.resolve(nomeImagem);
-
-                Files.write(caminhoCompleto, arquivo.getBytes());
-
-                post.setImagemUrl(nomeImagem);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return postRepository.save(post);
-    }
+public Post criar(@RequestBody Post post) { // @RequestBody faz a mágica
+    post.setDataPublicacao(LocalDateTime.now());
+    return postRepository.save(post);
+    } 
 }

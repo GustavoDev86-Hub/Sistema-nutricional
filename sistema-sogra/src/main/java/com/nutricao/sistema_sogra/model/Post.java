@@ -1,8 +1,9 @@
 package com.nutricao.sistema_sogra.model;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "posts")
@@ -18,9 +19,14 @@ public class Post {
     @Column(columnDefinition = "TEXT")
     private String conteudo;
 
-    private String imagemUrl;
 
     private String tipo; // Pode ser 'artigo' ou 'imagem'
 
-    private LocalDateTime dataPublicacao = LocalDateTime.now();
+
+    public void setDataPublicacao(LocalDateTime now) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setDataPublicacao'");
+    }
+
+    
 }

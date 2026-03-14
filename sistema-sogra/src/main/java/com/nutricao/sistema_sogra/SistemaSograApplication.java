@@ -9,5 +9,4 @@ public class SistemaSograApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(SistemaSograApplication.class, args);
 	}
-
 }
