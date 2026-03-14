@@ -6,9 +6,10 @@ function App() {
   const [view, setView] = useState('cliente'); 
   const [isAutenticado, setIsAutenticado] = useState(false); 
   const [novoPost, setNovoPost] = useState({ titulo: '', conteudo: '', tipo: 'artigo' });
+  const [arquivo, setArquivo] = useState(null); 
 
   const SENHA_ACESSO = "nutri123"; 
-  const API_URL = "http://localhost:8080/api/posts";
+  const API_URL = "http://localhost:8080/posts";
 
   const carregarPosts = () => {
     axios.get(API_URL)
@@ -30,29 +31,40 @@ function App() {
     }
   };
 
-  const salvarPostagem = (e) => {
-  e.preventDefault();
-
-  const formData = new FormData();
-  formData.append('titulo', novoPost.titulo);
-  formData.append('conteudo', novoPost.conteudo);
-  formData.append('tipo', novoPost.tipo);
-  formData.append('imagem', arquivoSelecionado); 
-
-  axios.post(API_URL, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  })
-  .then(() => {
-    alert("Publicado com Foto!");
-    carregarPosts();
-    setView('cliente');
-  })
-  .catch(err => console.error("Erro ao subir imagem:", err));
-};
-
   const fazerLogout = () => {
     setIsAutenticado(false);
     setView('cliente');
+  };
+
+  const salvarPostagem = (e) => {
+    e.preventDefault();
+
+    // Verificação de segurança para o arquivo
+    if (!arquivo) {
+        alert("Por favor, selecione uma imagem antes de publicar!");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('titulo', novoPost.titulo);
+    formData.append('conteudo', novoPost.conteudo);
+    formData.append('tipo', novoPost.tipo); // No seu Java está @RequestParam("tipo")
+    formData.append('imagem', arquivo);   // No seu Java está @RequestParam("imagem")
+
+    axios.post(API_URL, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    .then(() => {
+      alert("Postagem com foto publicada! 📸");
+      setNovoPost({ titulo: '', conteudo: '', tipo: 'artigo' });
+      setArquivo(null); 
+      carregarPosts();
+      setView('cliente');
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Erro ao subir: Verifique se o servidor Java está rodando.");
+    });
   };
 
   return (
@@ -76,10 +88,8 @@ function App() {
         </div>
       </nav>
 
-      {/* Conteúdo Principal */}
       <main style={styles.mainContent}>
-        
-        {/* VISÃO DO CLIENTE (Só vê os artigos) */}
+        {/* VISÃO DO CLIENTE */}
         {view === 'cliente' && (
           <section>
             <h1 style={styles.title}>Blog de Nutrição</h1>
@@ -89,6 +99,7 @@ function App() {
                 <span style={styles.tag}>{post.tipo}</span>
                 <h2 style={styles.postTitle}>{post.titulo}</h2>
                 <p style={styles.postContent}>{post.conteudo}</p>
+                {/* Aqui você pode adicionar a exibição da imagem se o back-end retornar a URL */}
               </div>
             ))}
           </section>
@@ -99,7 +110,7 @@ function App() {
           <section style={styles.adminSection}>
             <h1 style={styles.title}>Nova Postagem</h1>
             <form onSubmit={salvarPostagem} style={styles.form}>
-              <label>Título do Artigo:</label>
+              <label style={styles.label}>Título do Artigo:</label>
               <input 
                 style={styles.input}
                 value={novoPost.titulo}
@@ -107,7 +118,7 @@ function App() {
                 required
               />
 
-              <label>Conteúdo/Dica:</label>
+              <label style={styles.label}>Conteúdo/Dica:</label>
               <textarea 
                 style={styles.textarea}
                 value={novoPost.conteudo}
@@ -115,7 +126,7 @@ function App() {
                 required
               />
 
-              <label>Categoria:</label>
+              <label style={styles.label}>Categoria:</label>
               <select 
                 style={styles.input}
                 value={novoPost.tipo}
@@ -124,6 +135,15 @@ function App() {
                 <option value="artigo">Artigo Detalhado</option>
                 <option value="dica">Dica Rápida</option>
               </select>
+
+              <label style={{ fontWeight: 'bold', marginTop: '10px' }}>Foto do Prato/Dica:</label>
+              <input 
+                type="file" 
+                accept="image/*"
+                onChange={(e) => setArquivo(e.target.files[0])} 
+                style={styles.input}
+                required
+              />
 
               <button type="submit" style={styles.submitButton}>Publicar Agora</button>
             </form>
@@ -149,9 +169,10 @@ const styles = {
   postTitle: { color: '#27ae60', margin: '10px 0' },
   postContent: { color: '#7f8c8d', lineHeight: '1.6' },
   form: { display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' },
+  label: { fontWeight: 'bold', color: '#34495e' },
   input: { padding: '12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '16px' },
   textarea: { padding: '12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '16px', height: '150px', resize: 'vertical' },
-  submitButton: { backgroundColor: '#27ae60', color: 'white', padding: '15px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }
+  submitButton: { backgroundColor: '#27ae60', color: 'white', padding: '15px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', marginTop: '10px' }
 };
 
 export default App;
